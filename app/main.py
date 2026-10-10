@@ -20,7 +20,9 @@ STATIC_DIR = BASE_DIR / "static"
 
 app = FastAPI(title="InsightFlow", version="0.1.0",
               description="Intelligent customer feedback and decision platform")
-db = Database(os.getenv("INSIGHTFLOW_DB", str(BASE_DIR / "data" / "insightflow.db")))
+# On Vercel the filesystem is read-only except /tmp — store the SQLite DB there
+_DEFAULT_DB = "/tmp/insightflow.db" if os.getenv("VERCEL") else str(BASE_DIR / "data" / "insightflow.db")
+db = Database(os.getenv("INSIGHTFLOW_DB", _DEFAULT_DB))
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
