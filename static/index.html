@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>InsightFlow — Customer Feedback &amp; Decisions</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1c2333; --muted:#667085; --accent:#3b5bdb; --pos:#2b8a3e; --neg:#c92a2a; --neu:#868e96; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
+  header { background:var(--accent); color:#fff; padding:18px 28px; }
+  header h1 { margin:0; font-size:1.35rem; }
+  header p { margin:4px 0 0; opacity:.85; font-size:.9rem; }
+  main { max-width:1100px; margin:0 auto; padding:20px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:16px 0; }
+  .card { background:var(--card); border-radius:10px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .card .label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .card .value { font-size:1.6rem; font-weight:700; margin-top:4px; }
+  section { background:var(--card); border-radius:10px; padding:18px; margin:16px 0; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  h2 { margin:0 0 12px; font-size:1.05rem; }
+  textarea, select { font:inherit; padding:8px 10px; border:1px solid #d0d5dd; border-radius:8px; width:100%; }
+  textarea { min-height:80px; resize:vertical; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .row > * { flex:1; min-width:140px; }
+  button { background:var(--accent); border:none; color:#fff; padding:9px 16px; border-radius:8px; cursor:pointer; font:inherit; }
+  button.secondary { background:#e9ecef; color:var(--ink); }
+  button:hover { filter:brightness(1.08); }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid #eee; }
+  th { color:var(--muted); font-weight:600; font-size:.78rem; text-transform:uppercase; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:.75rem; font-weight:600; }
+  .pill.positive { background:#e6fcf5; color:var(--pos); }
+  .pill.negative { background:#fff5f5; color:var(--neg); }
+  .pill.neutral  { background:#f1f3f5; color:var(--neu); }
+  .pill.critical { background:#fff5f5; color:var(--neg); }
+  .pill.high     { background:#fff4e6; color:#d9480f; }
+  .pill.medium   { background:#e7f5ff; color:#1971c2; }
+  .pill.low      { background:#f1f3f5; color:var(--neu); }
+  #analysis-result, #msg { font-size:.85rem; margin-top:8px; }
+  #msg { color:var(--neg); }
+  .muted { color:var(--muted); font-size:.85rem; }
+  select.status { width:auto; padding:4px 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 InsightFlow</h1>
+  <p>Intelligent customer feedback &amp; decision platform</p>
+</header>
+<main>
+  <div class="cards">
+    <div class="card"><div class="label">Total feedback</div><div class="value" id="kpi-total">–</div></div>
+    <div class="card"><div class="label">Avg sentiment</div><div class="value" id="kpi-avg">–</div></div>
+    <div class="card"><div class="label">NPS-like</div><div class="value" id="kpi-nps">–</div></div>
+    <div class="card"><div class="label">Positive</div><div class="value" id="kpi-pos" style="color:var(--pos)">–</div></div>
+    <div class="card"><div class="label">Negative</div><div class="value" id="kpi-neg" style="color:var(--neg)">–</div></div>
+    <div class="card"><div class="label">High urgency</div><div class="value" id="kpi-urgent">–</div></div>
+  </div>
+
+  <section>
+    <h2>➕ Submit feedback</h2>
+    <textarea id="fb-text" placeholder="Paste customer feedback here…"></textarea>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label class="muted" for="fb-source">Source</label>
+        <select id="fb-source">
+          <option>web</option><option>survey</option><option>email</option>
+          <option>chat</option><option>review</option><option>social</option>
+        </select>
+      </div>
+      <div style="flex:2"><button id="btn-submit">Analyze &amp; save</button></div>
+      <div style="flex:2"><button class="secondary" id="btn-seed">Load sample data</button></div>
+      <div style="flex:2"><button class="secondary" id="btn-decisions">Generate decisions</button></div>
+    </div>
+    <div id="analysis-result"></div>
+    <div id="msg"></div>
+  </section>
+
+  <section>
+    <h2>🧩 Theme breakdown</h2>
+    <table>
+      <thead><tr><th>Theme</th><th>Mentions</th><th>Avg score</th><th>Avg urgency</th><th>% Negative</th></tr></thead>
+      <tbody id="themes-body"><tr><td colspan="5" class="muted">No data yet — load sample data or submit feedback.</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>✅ Decisions</h2>
+    <table>
+      <thead><tr><th>Title</th><th>Priority</th><th>Rationale</th><th>Status</th></tr></thead>
+      <tbody id="decisions-body"><tr><td colspan="4" class="muted">No decisions yet — click “Generate decisions”.</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🗂 Recent feedback</h2>
+    <table>
+      <thead><tr><th>Source</th><th>Text</th><th>Sentiment</th><th>Score</th><th>Themes</th><th>Urgency</th></tr></thead>
+      <tbody id="feedback-body"><tr><td colspan="6" class="muted">No feedback yet.</td></tr></tbody>
+    </table>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const api = async (path, opts = {}) => {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!r.ok) throw new Error(`${r.status}: ${JSON.stringify(await r.json().catch(() => ({})))}`);
+  return r.json();
+};
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function refresh() {
+  try {
+    const [insights, feedback, decisions] = await Promise.all([
+      api("/api/insights"), api("/api/feedback?limit=25"), api("/api/decisions"),
+    ]);
+
+    $("kpi-total").textContent = insights.total;
+    $("kpi-avg").textContent = insights.total ? insights.avg_score.toFixed(2) : "–";
+    $("kpi-nps").textContent = insights.nps_like ?? "–";
+    $("kpi-pos").textContent = insights.sentiment_counts.positive ?? 0;
+    $("kpi-neg").textContent = insights.sentiment_counts.negative ?? 0;
+    $("kpi-urgent").textContent = insights.high_urgency;
+
+    $("themes-body").innerHTML = insights.theme_stats.length
+      ? insights.theme_stats.map(t => `<tr>
+          <td><b>${esc(t.theme)}</b></td><td>${t.mentions}</td>
+          <td>${t.avg_score > 0 ? "+" : ""}${t.avg_score.toFixed(2)}</td>
+          <td>${t.avg_urgency.toFixed(1)}/5</td><td>${Math.round(t.negative_share * 100)}%</td></tr>`).join("")
+      : `<tr><td colspan="5" class="muted">No themes detected yet.</td></tr>`;
+
+    $("decisions-body").innerHTML = decisions.length
+      ? decisions.map(d => `<tr>
+          <td>${esc(d.title)}</td>
+          <td><span class="pill ${esc(d.priority)}">${esc(d.priority)}</span></td>
+          <td class="muted">${esc(d.rationale)}</td>
+          <td><select class="status" data-id="${d.id}">
+            ${["open","in_progress","done","dismissed"].map(s =>
+              `<option value="${s}" ${d.status === s ? "selected" : ""}>${s.replace("_"," ")}</option>`).join("")}
+          </select></td></tr>`).join("")
+      : `<tr><td colspan="4" class="muted">No decisions yet — click “Generate decisions”.</td></tr>`;
+
+    $("feedback-body").innerHTML = feedback.length
+      ? feedback.map(f => `<tr>
+          <td>${esc(f.source)}</td><td>${esc(f.text)}</td>
+          <td><span class="pill ${esc(f.sentiment)}">${esc(f.sentiment)}</span></td>
+          <td>${f.score > 0 ? "+" : ""}${f.score.toFixed(2)}</td>
+          <td class="muted">${esc((f.themes || []).join(", "))}</td>
+          <td>${f.urgency}/5</td></tr>`).join("")
+      : `<tr><td colspan="6" class="muted">No feedback yet.</td></tr>`;
+
+    document.querySelectorAll("select.status").forEach(sel => {
+      sel.addEventListener("change", async () => {
+        await api(`/api/decisions/${sel.dataset.id}`, { method: "PATCH", body: JSON.stringify({ status: sel.value }) });
+        refresh();
+      });
+    });
+  } catch (e) { $("msg").textContent = "⚠ " + e.message; }
+}
+
+$("btn-submit").addEventListener("click", async () => {
+  const text = $("fb-text").value.trim();
+  if (text.length < 3) { $("msg").textContent = "⚠ Feedback must be at least 3 characters."; return; }
+  try {
+    const r = await api("/api/feedback", { method: "POST", body: JSON.stringify({ text, source: $("fb-source").value }) });
+    $("analysis-result").textContent =
+      `Analysis → sentiment: ${r.analysis.sentiment} (${r.analysis.score}), ` +
+      `themes: ${r.analysis.themes.join(", ") || "none"}, urgency: ${r.analysis.urgency}/5`;
+    $("fb-text").value = ""; $("msg").textContent = "";
+    refresh();
+  } catch (e) { $("msg").textContent = "⚠ " + e.message; }
+});
+
+$("btn-seed").addEventListener("click", async () => {
+  try { const r = await api("/api/seed", { method: "POST" }); $("msg").textContent = `✔ Loaded ${r.loaded} sample feedback records.`; refresh(); }
+  catch (e) { $("msg").textContent = "⚠ " + e.message; }
+});
+
+$("btn-decisions").addEventListener("click", async () => {
+  try { const r = await api("/api/decisions/generate", { method: "POST" }); $("msg").textContent = `✔ Created ${r.count} new decision(s).`; refresh(); }
+  catch (e) { $("msg").textContent = "⚠ " + e.message; }
+});
+
+refresh();
+</script>
+</body>
+</html>
