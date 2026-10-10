@@ -1,4 +1,0 @@
-INFO:     127.0.0.1:60661 - "GET /api/health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60661 - "GET / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60661 - "GET /api/insights HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60661 - "POST /api/decisions/generate HTTP/1.1" 200 OK
