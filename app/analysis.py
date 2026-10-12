@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass, field, asdict
 
 POSITIVE = {
-    "great", "love", "excellent", "amazing", "fast", "helpful", "easy", "good", "excellent", "impressive",
+    "great", "love", "excellent", "amazing", "fast", "helpful", "easy", "good", "impressive",
     "awesome", "happy", "satisfied", "fantastic", "smooth", "reliable", "clean",
     "friendly", "intuitive", "recommend", "best", "thanks", "thank",
 }
@@ -19,7 +19,7 @@ NEGATIVE = {
     "crashes", "confusing", "expensive", "rude", "late", "worst", "poor",
     "frustrating", "annoying", "useless", "error", "errors", "disappointed",
     "difficult", "unreliable", "missing", "wrong", "unacceptable", "crashing",
-    "crashed", "broken", "lagging", "confused", "rude", "annoyed", "terrible",
+    "crashed", "lagging", "confused", "annoyed",
 }
 NEGATORS = {"not", "no", "never", "don't", "doesn't", "didn't", "isn't", "wasn't", "cannot", "can't"}
 INTENSIFIERS = {"very", "really", "extremely", "super", "so", "incredibly"}
